@@ -98,6 +98,7 @@ public class LeagueManager {
 	}
 
 	private static void viewLeagueBalanceReport() {
+		prompt.printTitle("League Balance Report");
 		Collections.sort(teams);
 		for (Team team : teams) {
 			Set<Player> playerSet = team.getPlayers();
@@ -105,7 +106,15 @@ public class LeagueManager {
 			int experienced = 0;
 			int inexperienced = 0;
 			int height = 0;
+			int[] heightCount = {0,0,0};
 			for (Player player : playerSet) {
+				int playerHeight = player.getHeightInInches();
+				int index = 0;
+				if (playerHeight > 40)
+					index++;
+				if (playerHeight > 46)
+					index++;
+				heightCount[index]++;
 				height += player.getHeightInInches();
 				if (player.isPreviousExperience())
 					experienced++;
@@ -122,14 +131,20 @@ public class LeagueManager {
 							"    Total players: %d%n" +
 							"    Experienced players: %d%n" +
 							"    Inexperienced players: %d%n" +
-							"    Experienced ratio: %f%n" +
-							"    Average height: %f%n",
+							"    Experienced ratio: %.2f%n" +
+							"    Average height: %.2f%n" +
+							"    35-40\": %d%n" +
+							"    41-46\": %d%n" +
+							"    47-50\": %d%n",
 					team.getName(),
 					total,
 					experienced,
 					inexperienced,
 					ratio,
-					averageHeight);
+					averageHeight,
+					heightCount[0],
+					heightCount[1],
+					heightCount[2]);
 		}
 		prompt.pause();
 	}
