@@ -68,23 +68,28 @@ public class LeagueManager {
 	private static void viewHeightChart() {
 		Team team = getTeam();
 		Map<String,List<Player>> heightMap = new TreeMap<>();
-		String[] sizes = {"0<35","36-40","41-45","46>50"};
+		String[] sizes = {"35-40","41-46","47-50"};
+		int[] sizeCount = {0,0,0};
 		for (Player player : team.getPlayers()) {
 			// convert the height into an index for the string
-			int height = player.getHeightInInches() - 31;
-			height /= 5;
-			if (height<0)
-				height = 0;
-			List<Player> players = heightMap.get(sizes[height]);
+			int height = player.getHeightInInches();
+			int index = 0;
+			if (height > 40)
+				index++;
+			if (height > 46)
+				index++;
+			List<Player> players = heightMap.get(sizes[index]);
 			if (players == null) {
 				players = new ArrayList<>();
-				heightMap.put(sizes[height],players);
+				heightMap.put(sizes[index],players);
 			}
+			sizeCount[index]++;
 			players.add(player);
 		}
 
 		for (Map.Entry<String,List<Player>> entry : heightMap.entrySet()) {
-			System.out.println(entry.getKey());
+			int i = Arrays.asList(sizes).indexOf(entry.getKey());
+			System.out.printf("%s: %d%n", entry.getKey(), sizeCount[i]);
 			for (Player player : entry.getValue()) {
 				System.out.printf("   -%s: %d%n",player, player.getHeightInInches());
 			}
@@ -215,11 +220,15 @@ public class LeagueManager {
 	}
 
 	private static void createTeam() {
-		prompt.printTitle("Create a team");
-		String teamName = prompt.getLine("Team name");
-		String coach = prompt.getLine("Coach");
-		Team team = new Team(teamName, coach);
-		teams.add(team);
+		if (players.length < teams.size()) {
+			prompt.printTitle("Create a team");
+			String teamName = prompt.getLine("Team name");
+			String coach = prompt.getLine("Coach");
+			Team team = new Team(teamName, coach);
+			teams.add(team);
+		} else {
+			System.out.println("Sorry, you can't create any more teams.");
+		}
 	}
 
 }

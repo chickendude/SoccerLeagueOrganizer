@@ -1,7 +1,7 @@
 package com.teamtreehouse.model;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Created by chickendude on 04/10/16.
@@ -14,7 +14,7 @@ public class Team implements Comparable<Team> {
 	public Team(String name, String coach) {
 		mName = name;
 		mCoach = coach;
-		mPlayers = new HashSet<>();
+		mPlayers = new TreeSet<>();
 	}
 
 	@Override
