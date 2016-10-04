@@ -15,15 +15,6 @@ public class LeagueManager {
 	public static void main(String[] args) {
 		prompt = new Prompter();
 		teams = new ArrayList<>();
-
-		teams.add(new Team("Monkeys","Manfred"));
-		teams.add(new Team("Bread","Manfred"));
-		teams.add(new Team("Dogs","Manfred"));
-		teams.add(new Team("Rockets","Manfred"));
-		teams.add(new Team("Apple","Manfred"));
-		teams.add(new Team("Whales","Manfred"));
-		teams.add(new Team("Tigers","Manfred"));
-
 		// load players and keep track of "free agents"
 		players = Players.load();
 		freeAgents = new TreeSet<>(Arrays.asList(players));
