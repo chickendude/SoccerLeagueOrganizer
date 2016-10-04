@@ -3,6 +3,7 @@ package com.teamtreehouse.model;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 
 /**
  * Class that handles user input for things like menus.
@@ -30,7 +31,12 @@ public class Prompter {
 		return number - 1;
     }
 
-    private int getInt() {
+	public int drawMenu(String title, List<String> choices) {
+		String[] choicesArray = choices.toArray(new String[choices.size()]);
+		return drawMenu(title, choicesArray);
+	}
+
+	private int getInt() {
 		String line = getLine();
 		// check if it is a valid number
 		int number = 0;
