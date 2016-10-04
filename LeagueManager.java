@@ -66,7 +66,30 @@ public class LeagueManager {
 	}
 
 	private static void viewHeightChart() {
-		
+		Team team = getTeam();
+		Map<String,List<Player>> heightMap = new TreeMap<>();
+		String[] sizes = {"0<35","36-40","41-45","46>50"};
+		for (Player player : team.getPlayers()) {
+			// convert the height into an index for the string
+			int height = player.getHeightInInches() - 31;
+			height /= 5;
+			if (height<0)
+				height = 0;
+			List<Player> players = heightMap.get(sizes[height]);
+			if (players == null) {
+				players = new ArrayList<>();
+				heightMap.put(sizes[height],players);
+			}
+			players.add(player);
+		}
+
+		for (Map.Entry<String,List<Player>> entry : heightMap.entrySet()) {
+			System.out.println(entry.getKey());
+			for (Player player : entry.getValue()) {
+				System.out.printf("   -%s: %d%n",player, player.getHeightInInches());
+			}
+		}
+		prompt.pause();
 	}
 
 	private static void viewLeagueBalanceReport() {
@@ -103,9 +126,19 @@ public class LeagueManager {
 					ratio,
 					averageHeight);
 		}
+		prompt.pause();
 	}
 
 	private static void viewTeamRoster() {
+		Team team = getTeam();
+		System.out.printf("%nTeam roster for team '%s':%n",team);
+		for (Player player : team.getPlayers()) {
+			System.out.println(player);
+		}
+		prompt.pause();
+	}
+
+	private static Team getTeam() {
 		List<String> teamList = new ArrayList<>();
 		Collections.sort(teams);
 
@@ -114,12 +147,7 @@ public class LeagueManager {
 		}
 		int choice = prompt.drawMenu("View Team Roster", teamList);
 		// display the roster
-		Team team = teams.get(choice);
-		System.out.printf("%nTeam roster for team '%s':%n",team);
-		for (Player player : team.getPlayers()) {
-			System.out.println(player);
-		}
-		prompt.pause();
+		return teams.get(choice);
 	}
 
 	private static void addPlayerToTeam() {
