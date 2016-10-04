@@ -200,33 +200,40 @@ public class LeagueManager {
 			for (Player player : playerList) {
 				String teamName = "none";
 				for (Team team : teams) {
-					if (team.hasPlayer(player))
+					if (team.hasPlayer(player)) {
 						teamName = team.getName();
+						playerNameList.add(String.format("%s, %s - Team: %s (Height: %s in, Prev. Exp: %s)",
+								player.getLastName(),
+								player.getFirstName(),
+								teamName,
+								player.getHeightInInches(),
+								player.isPreviousExperience()));
+					}
 				}
-				playerNameList.add(String.format("%s, %s - Team: %s (Height: %s in, Prev. Exp: %s)",
-						player.getLastName(),
-						player.getFirstName(),
-						teamName,
-						player.getHeightInInches(),
-						player.isPreviousExperience()));
 			}
-			int choice = prompt.drawMenu("Remove player from team", playerNameList);
-			Player player = playerList.get(choice);
-			// find the player amongst the teams and remove them/readd them to the free agents
-			for (Team team : teams) {
-				if (team.hasPlayer(player)) {
-					team.removePlayer(player);
-					freeAgents.add(player);
-					System.out.printf("'%s' removed from team '%s'",player, team.getName());
+			if (playerNameList.size() > 0) {
+				int choice = prompt.drawMenu("Remove player from team", playerNameList);
+				Player player = playerList.get(choice);
+				// find the player amongst the teams and remove them/readd them to the free agents
+				for (Team team : teams) {
+					if (team.hasPlayer(player)) {
+						team.removePlayer(player);
+						freeAgents.add(player);
+						System.out.printf("'%s' removed from team '%s'", player, team.getName());
+					}
 				}
+			} else {
+				System.out.println("No players have been assigned teams yet.");
+				prompt.pause();
 			}
 		} else {
 			System.out.println("No teams. Please create some teams first.");
+			prompt.pause();
 		}
 	}
 
 	private static void createTeam() {
-		if (players.length < teams.size()) {
+		if (teams.size() < players.length) {
 			prompt.printTitle("Create a team");
 			String teamName = prompt.getLine("Team name");
 			String coach = prompt.getLine("Coach");
