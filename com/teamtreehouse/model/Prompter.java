@@ -49,6 +49,11 @@ public class Prompter {
 		return number;
 	}
 
+	public void pause() {
+		System.out.print("Press [Enter] to continue...");
+		getLine();
+	}
+
 	private String getLine() {
 		// get input from user
 		String choice = "";

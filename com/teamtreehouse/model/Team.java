@@ -6,7 +6,7 @@ import java.util.Set;
 /**
  * Created by chickendude on 04/10/16.
  */
-public class Team {
+public class Team implements Comparable<Team> {
 	private String mName;
 	private String mCoach;
 	private Set<Player> mPlayers;
@@ -44,5 +44,10 @@ public class Team {
 
 	public Set<Player> getPlayers() {
 		return mPlayers;
+	}
+
+	@Override
+	public int compareTo(Team team) {
+		return mName.compareTo(team.getName());
 	}
 }

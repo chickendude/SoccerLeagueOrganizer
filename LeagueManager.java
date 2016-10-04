@@ -15,12 +15,27 @@ public class LeagueManager {
 	public static void main(String[] args) {
 		prompt = new Prompter();
 		teams = new ArrayList<>();
+
+		teams.add(new Team("Monkeys","Manfred"));
+		teams.add(new Team("Bread","Manfred"));
+		teams.add(new Team("Dogs","Manfred"));
+		teams.add(new Team("Rockets","Manfred"));
+		teams.add(new Team("Apple","Manfred"));
+		teams.add(new Team("Whales","Manfred"));
+		teams.add(new Team("Tigers","Manfred"));
+
 		// load players and keep track of "free agents"
 		players = Players.load();
 		freeAgents = new TreeSet<>(Arrays.asList(players));
 		System.out.printf("There are currently %d registered players.%n", players.length);
 		// Load main menu
-		String[] menuList = {"Create new team","Add player to team","Remove player from team","Quit"};
+		String[] menuList = {"Create new team",	// 0
+				"Add player to team",			// 1
+				"Remove player from team",		// 2
+				"View team roster",				// 3
+				"League Balance Report",		// 4
+				"Height Chart",					// 5
+				"Quit"};
 		int choice;
 		do {
 			choice = prompt.drawMenu("Welcome to " + APP_NAME + "!", menuList);
@@ -34,11 +49,77 @@ public class LeagueManager {
 				case 2:
 					removePlayerFromTeam();
 					break;
+				case 3:
+					viewTeamRoster();
+					break;
+				case 4:
+					viewLeagueBalanceReport();
+					break;
+				case 5:
+					viewHeightChart();
+					break;
 				default:
 					System.out.println("Thanks for using " + APP_NAME + "!");
 					choice = -1;
 			}
 		} while (choice != -1);
+	}
+
+	private static void viewHeightChart() {
+		
+	}
+
+	private static void viewLeagueBalanceReport() {
+		Collections.sort(teams);
+		for (Team team : teams) {
+			Set<Player> playerSet = team.getPlayers();
+			int total = playerSet.size();
+			int experienced = 0;
+			int inexperienced = 0;
+			int height = 0;
+			for (Player player : playerSet) {
+				height += player.getHeightInInches();
+				if (player.isPreviousExperience())
+					experienced++;
+				else
+					inexperienced++;
+			}
+			float ratio = 0;
+			if (total > 0)
+				ratio = experienced / (float) total;
+			float averageHeight = 0;
+			if (total > 0)
+				averageHeight = height / (float) total;
+			System.out.printf("%s:%n" +
+							"    Total players: %d%n" +
+							"    Experienced players: %d%n" +
+							"    Inexperienced players: %d%n" +
+							"    Experienced ratio: %f%n" +
+							"    Average height: %f%n",
+					team.getName(),
+					total,
+					experienced,
+					inexperienced,
+					ratio,
+					averageHeight);
+		}
+	}
+
+	private static void viewTeamRoster() {
+		List<String> teamList = new ArrayList<>();
+		Collections.sort(teams);
+
+		for (Team team : teams) {
+			teamList.add(team.getName());
+		}
+		int choice = prompt.drawMenu("View Team Roster", teamList);
+		// display the roster
+		Team team = teams.get(choice);
+		System.out.printf("%nTeam roster for team '%s':%n",team);
+		for (Player player : team.getPlayers()) {
+			System.out.println(player);
+		}
+		prompt.pause();
 	}
 
 	private static void addPlayerToTeam() {
@@ -58,6 +139,7 @@ public class LeagueManager {
 
 
 			// now select which team to add to
+			Collections.sort(teams);
 			List<String> teamList = new ArrayList<>();
 			for (Team team : teams) {
 				teamList.add(team.getName() + " - Coach " + team.getCoach());
@@ -91,6 +173,7 @@ public class LeagueManager {
 			}
 			int choice = prompt.drawMenu("Remove player from team", playerNameList);
 			Player player = playerList.get(choice);
+			// find the player amongst the teams and remove them/readd them to the free agents
 			for (Team team : teams) {
 				if (team.hasPlayer(player)) {
 					team.removePlayer(player);
