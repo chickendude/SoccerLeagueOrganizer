@@ -195,13 +195,18 @@ public class LeagueManager {
 
 	private static void removePlayerFromTeam() {
 		if(teams.size() > 0) {
+			// get a sorted set of players
 			List<Player> playerList = new ArrayList<>(new TreeSet<Player>(Arrays.asList(players)));
+			// players with a team will be added here
 			List<String> playerNameList = new ArrayList<>();
+			List<Player> playersOnTeamList = new ArrayList<>();
+			// sort through players and extract those already on a team
 			for (Player player : playerList) {
 				String teamName = "none";
 				for (Team team : teams) {
 					if (team.hasPlayer(player)) {
 						teamName = team.getName();
+						playersOnTeamList.add(player);
 						playerNameList.add(String.format("%s, %s - Team: %s (Height: %s in, Prev. Exp: %s)",
 								player.getLastName(),
 								player.getFirstName(),
@@ -213,7 +218,7 @@ public class LeagueManager {
 			}
 			if (playerNameList.size() > 0) {
 				int choice = prompt.drawMenu("Remove player from team", playerNameList);
-				Player player = playerList.get(choice);
+				Player player = playersOnTeamList.get(choice);
 				// find the player amongst the teams and remove them/readd them to the free agents
 				for (Team team : teams) {
 					if (team.hasPlayer(player)) {
