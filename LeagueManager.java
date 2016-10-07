@@ -1,3 +1,4 @@
+import com.sun.org.apache.bcel.internal.classfile.SourceFile;
 import com.teamtreehouse.model.Player;
 import com.teamtreehouse.model.Players;
 import com.teamtreehouse.model.Prompter;
@@ -20,13 +21,18 @@ public class LeagueManager {
 		freeAgents = new TreeSet<>(Arrays.asList(players));
 		System.out.printf("There are currently %d registered players.%n", players.length);
 		// Load main menu
+		// TODO:chickendude add missing players to waiting list
+		// TODO:chickendude automatically build fair teams
+		// TODO:chickendude remove players from teams and fill in with waiting list players (FIFO)
 		String[] menuList = {"Create new team",	// 0
 				"Add player to team",			// 1
 				"Remove player from team",		// 2
 				"View team roster",				// 3
 				"League Balance Report",		// 4
 				"Height Chart",					// 5
+				"Build teams automatically",	// 6
 				"Quit"};
+
 		int choice;
 		do {
 			choice = prompt.drawMenu("Welcome to " + APP_NAME + "!", menuList);
@@ -49,11 +55,49 @@ public class LeagueManager {
 				case 5:
 					viewHeightChart();
 					break;
+				case 6:
+					buildTeams();
+					break;
 				default:
 					System.out.println("Thanks for using " + APP_NAME + "!");
 					choice = -1;
 			}
 		} while (choice != -1);
+	}
+
+	private static void buildTeams() {
+		if (teams.size()>0) {
+			System.out.printf("Building %d teams, please wait...%n", teams.size());
+
+			List<Player> playerList = new ArrayList<>(Arrays.asList(players));
+
+			playerList.sort((p1, p2) ->
+					(p1.getHeightInInches() + (p1.isPreviousExperience() ? 100 : 0)) -
+					(p2.getHeightInInches() + (p2.isPreviousExperience() ? 100 : 0)));
+
+			// We'll loop through each player adding "least valuable" player rotating through the teams like this:
+			// 0-max then max-0
+			int i = 0;
+			int next = 1;	// this gets added to i, either +1 or -1
+			for (Player player : playerList) {
+				System.out.printf("%s :%n  Experience = %s : Height = %d%n",
+						player.getFirstName() + " " + player.getLastName(),
+						player.isPreviousExperience(),
+						player.getHeightInInches());
+				System.out.printf("...added to team: %s%n",teams.get(i).getName());
+				teams.get(i).addPlayer(player);
+				i += next;
+				if (i == teams.size()-1)
+					next--;
+				else if (i == 0)
+					next++;
+			}
+
+			prompt.pause();
+		} else {
+			System.out.println("Please create at least one team, first.");
+			prompt.pause();
+		}
 	}
 
 	private static void viewHeightChart() {
