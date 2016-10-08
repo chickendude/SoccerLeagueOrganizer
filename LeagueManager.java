@@ -23,15 +23,15 @@ public class LeagueManager {
 		freeAgents = new TreeSet<>(players);
 		System.out.printf("There are currently %d registered players.%n", players.size());
 		// Load main menu
-		String[] menuList = {"Create new team",    // 0
-				"Add player to team",            // 1
-				"Remove player from team",        // 2
-				"View team roster",                // 3
-				"League Balance Report",        // 4
-				"Height Chart",                    // 5
-				"Build teams automatically",    // 6
-				"Add late player to waiting list",    // 7
-				"Remove player from league",    // 8
+		String[] menuList = {"Create new team",		// 0
+				"Add player to team",				// 1
+				"Remove player from team",			// 2
+				"View team roster",					// 3
+				"League Balance Report",			// 4
+				"Height Chart",						// 5
+				"Build teams automatically",		// 6
+				"Add late player to waiting list",	// 7
+				"Remove player from league",		// 8
 				"Quit"};
 
 		int choice;
