@@ -36,6 +36,11 @@ public class Prompter {
 		return drawMenu(title, choicesArray);
 	}
 
+	public int getInt(String message) {
+		System.out.print(message+": ");
+		return getInt();
+	}
+
 	private int getInt() {
 		String line = getLine();
 		// check if it is a valid number

@@ -11,32 +11,33 @@ public class LeagueManager {
 	private static Prompter prompt;
 	private static List<Team> teams;
 	private static Set<Player> freeAgents;
-	private static Player[] players;
+	private static List<Player> players;
+	private static Queue<Player> playerQueue;
 
 	public static void main(String[] args) {
 		prompt = new Prompter();
 		teams = new ArrayList<>();
+		playerQueue = new ArrayDeque<>();
 		// load players and keep track of "free agents"
-		players = Players.load();
-		freeAgents = new TreeSet<>(Arrays.asList(players));
-		System.out.printf("There are currently %d registered players.%n", players.length);
+		players = new ArrayList<>(Arrays.asList(Players.load()));
+		freeAgents = new TreeSet<>(players);
+		System.out.printf("There are currently %d registered players.%n", players.size());
 		// Load main menu
-		// TODO:chickendude add missing players to waiting list
-		// TODO:chickendude automatically build fair teams
-		// TODO:chickendude remove players from teams and fill in with waiting list players (FIFO)
-		String[] menuList = {"Create new team",	// 0
-				"Add player to team",			// 1
-				"Remove player from team",		// 2
-				"View team roster",				// 3
-				"League Balance Report",		// 4
-				"Height Chart",					// 5
-				"Build teams automatically",	// 6
+		String[] menuList = {"Create new team",    // 0
+				"Add player to team",            // 1
+				"Remove player from team",        // 2
+				"View team roster",                // 3
+				"League Balance Report",        // 4
+				"Height Chart",                    // 5
+				"Build teams automatically",    // 6
+				"Add late player to waiting list",    // 7
+				"Remove player from league",    // 8
 				"Quit"};
 
 		int choice;
 		do {
 			choice = prompt.drawMenu("Welcome to " + APP_NAME + "!", menuList);
-			switch(choice) {
+			switch (choice) {
 				case 0:
 					createTeam();
 					break;
@@ -58,6 +59,12 @@ public class LeagueManager {
 				case 6:
 					buildTeams();
 					break;
+				case 7:
+					addLatePlayer();
+					break;
+				case 8:
+					removePlayerFromLeague();
+					break;
 				default:
 					System.out.println("Thanks for using " + APP_NAME + "!");
 					choice = -1;
@@ -65,29 +72,65 @@ public class LeagueManager {
 		} while (choice != -1);
 	}
 
+	private static void removePlayerFromLeague() {
+		List<String> playerNameList = new ArrayList<>();
+		Collections.sort(players);
+		for (Player player :
+				players) {
+			String message = String.format("%s",player);
+			playerNameList.add(message);
+		}
+		int choice = prompt.drawMenu("Remove player from league",playerNameList);
+		Player player = players.get(choice);
+		System.out.printf("Checking if '%s' is on a team...%n",player);
+		removePlayerFromTeam(player);
+		System.out.printf("%nRemoving '%s' from league...%n",player);
+		if (playerQueue.size() > 0) {
+			Player newPlayer = playerQueue.poll();
+			System.out.println(newPlayer);
+			freeAgents.remove(players.set(choice,newPlayer));
+			freeAgents.add(newPlayer);
+		} else {
+			players.remove(choice);
+			if (freeAgents.contains(player))
+				freeAgents.remove(player);
+		}
+	}
+
+	private static void addLatePlayer() {
+		String title = String.format("Add late player (%d players in queue)", playerQueue.size());
+		prompt.printTitle(title);
+		String playerFirstName = prompt.getLine("Enter player's first name");
+		String playerLastName = prompt.getLine("Enter player's last name");
+		int playerHeight = prompt.getInt("Enter player's height in inches");
+		boolean hasExperience = (prompt.getLine("Does player have experience (y/n)").startsWith("y"));
+		Player newPlayer = new Player(playerFirstName, playerLastName, playerHeight, hasExperience);
+		playerQueue.add(newPlayer);
+	}
+
 	private static void buildTeams() {
-		if (teams.size()>0) {
+		if (teams.size() > 0) {
 			System.out.printf("Building %d teams, please wait...%n", teams.size());
 
-			List<Player> playerList = new ArrayList<>(Arrays.asList(players));
+			List<Player> playerList = new ArrayList<>(players);
 
 			playerList.sort((p1, p2) ->
 					(p1.getHeightInInches() + (p1.isPreviousExperience() ? 100 : 0)) -
-					(p2.getHeightInInches() + (p2.isPreviousExperience() ? 100 : 0)));
+							(p2.getHeightInInches() + (p2.isPreviousExperience() ? 100 : 0)));
 
 			// We'll loop through each player adding "least valuable" player rotating through the teams like this:
 			// 0-max then max-0
 			int i = 0;
-			int next = 1;	// this gets added to i, either +1 or -1
+			int next = 1;    // this gets added to i, either +1 or -1
 			for (Player player : playerList) {
 				System.out.printf("%s :%n  Experience = %s : Height = %d%n",
 						player.getFirstName() + " " + player.getLastName(),
 						player.isPreviousExperience(),
 						player.getHeightInInches());
-				System.out.printf("...added to team: %s%n",teams.get(i).getName());
+				System.out.printf("...added to team: %s%n", teams.get(i).getName());
 				teams.get(i).addPlayer(player);
 				i += next;
-				if (i == teams.size()-1)
+				if (i == teams.size() - 1)
 					next--;
 				else if (i == 0)
 					next++;
@@ -102,9 +145,9 @@ public class LeagueManager {
 
 	private static void viewHeightChart() {
 		Team team = getTeam();
-		Map<String,List<Player>> heightMap = new TreeMap<>();
-		String[] sizes = {"35-40","41-46","47-50"};
-		int[] sizeCount = {0,0,0};
+		Map<String, List<Player>> heightMap = new TreeMap<>();
+		String[] sizes = {"35-40", "41-46", "47-50"};
+		int[] sizeCount = {0, 0, 0};
 		for (Player player : team.getPlayers()) {
 			// convert the height into an index for the string
 			int height = player.getHeightInInches();
@@ -116,17 +159,17 @@ public class LeagueManager {
 			List<Player> players = heightMap.get(sizes[index]);
 			if (players == null) {
 				players = new ArrayList<>();
-				heightMap.put(sizes[index],players);
+				heightMap.put(sizes[index], players);
 			}
 			sizeCount[index]++;
 			players.add(player);
 		}
 
-		for (Map.Entry<String,List<Player>> entry : heightMap.entrySet()) {
+		for (Map.Entry<String, List<Player>> entry : heightMap.entrySet()) {
 			int i = Arrays.asList(sizes).indexOf(entry.getKey());
 			System.out.printf("%s: %d%n", entry.getKey(), sizeCount[i]);
 			for (Player player : entry.getValue()) {
-				System.out.printf("   -%s: %d%n",player, player.getHeightInInches());
+				System.out.printf("   -%s: %d%n", player, player.getHeightInInches());
 			}
 		}
 		prompt.pause();
@@ -141,7 +184,7 @@ public class LeagueManager {
 			int experienced = 0;
 			int inexperienced = 0;
 			int height = 0;
-			int[] heightCount = {0,0,0};
+			int[] heightCount = {0, 0, 0};
 			for (Player player : playerSet) {
 				int playerHeight = player.getHeightInInches();
 				int index = 0;
@@ -186,7 +229,7 @@ public class LeagueManager {
 
 	private static void viewTeamRoster() {
 		Team team = getTeam();
-		System.out.printf("%nTeam roster for team '%s':%n",team);
+		System.out.printf("%nTeam roster for team '%s':%n", team);
 		for (Player player : team.getPlayers()) {
 			System.out.println(player);
 		}
@@ -206,7 +249,7 @@ public class LeagueManager {
 	}
 
 	private static void addPlayerToTeam() {
-		if(teams.size() > 0) {
+		if (teams.size() > 0) {
 			List<Player> playerList = new ArrayList<>(freeAgents);
 			List<String> playerNameList = new ArrayList<>();
 			for (Player player : playerList) {
@@ -238,14 +281,13 @@ public class LeagueManager {
 	}
 
 	private static void removePlayerFromTeam() {
-		if(teams.size() > 0) {
+		if (teams.size() > 0) {
 			// get a sorted set of players
-			List<Player> playerList = new ArrayList<>(new TreeSet<Player>(Arrays.asList(players)));
 			// players with a team will be added here
 			List<String> playerNameList = new ArrayList<>();
 			List<Player> playersOnTeamList = new ArrayList<>();
 			// sort through players and extract those already on a team
-			for (Player player : playerList) {
+			for (Player player : players) {
 				String teamName = "none";
 				for (Team team : teams) {
 					if (team.hasPlayer(player)) {
@@ -263,14 +305,7 @@ public class LeagueManager {
 			if (playerNameList.size() > 0) {
 				int choice = prompt.drawMenu("Remove player from team", playerNameList);
 				Player player = playersOnTeamList.get(choice);
-				// find the player amongst the teams and remove them/readd them to the free agents
-				for (Team team : teams) {
-					if (team.hasPlayer(player)) {
-						team.removePlayer(player);
-						freeAgents.add(player);
-						System.out.printf("'%s' removed from team '%s'", player, team.getName());
-					}
-				}
+				removePlayerFromTeam(player);
 			} else {
 				System.out.println("No players have been assigned teams yet.");
 				prompt.pause();
@@ -281,8 +316,19 @@ public class LeagueManager {
 		}
 	}
 
+	private static void removePlayerFromTeam(Player player) {
+		// find the player amongst the teams and remove them/readd them to the free agents
+		for (Team team : teams) {
+			if (team.hasPlayer(player)) {
+				team.removePlayer(player);
+				freeAgents.add(player);
+				System.out.printf("'%s' removed from team '%s'", player, team.getName());
+			}
+		}
+	}
+
 	private static void createTeam() {
-		if (teams.size() < players.length) {
+		if (teams.size() < players.size()) {
 			prompt.printTitle("Create a team");
 			String teamName = prompt.getLine("Team name");
 			String coach = prompt.getLine("Coach");
